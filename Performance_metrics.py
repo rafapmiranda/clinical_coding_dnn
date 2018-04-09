@@ -7,19 +7,17 @@ import numpy as np
 np.random.seed(1337) # for reproducibility
 
 import pandas as pd
-from keras.utils.np_utils import to_categorical
+#from keras.utils.np_utils import to_categorical
 from sklearn import preprocessing 
 from matplotlib import pyplot as plt
 from sklearn import metrics
 
-#%% LOAD PREDICTIONS
+# LOAD PREDICTIONS
 
 # The file predictions.txt has one array for each instance, organized in the following way:
 # true label, 3 most probable 4 digit (full-codes) predicted labels, 3 most probable 3 digit (blocks) predicted labels
 
 labels_pred = np.genfromtxt('example_predictions.txt', dtype = 'str')
-
-#%%
 
 # labels_cid has the true labels
 labels_cid = [x[0] for x in labels_pred]
@@ -256,15 +254,17 @@ mrr['pred_3'] = [x[:lvl] for x in [x[2] for x in labels_pred]]
 mrr['pred_1'] = mrr[0] == mrr['pred_1']
 mrr['pred_2'] = mrr[0] == mrr['pred_2']
 mrr['pred_3'] = mrr[0] == mrr['pred_3']
+
 mrr['k'] = [np.argmax( mrr[['pred_1','pred_2','pred_3']].iloc[x].get_values()) for x in range(len(mrr))]
 mrr['k'] = np.where(mrr['k'] == 2, 1/3, mrr['k'])
 mrr['k'] = np.where(mrr['k'] == 1, 1/2, mrr['k'])
 mrr['k'] = np.where(mrr['k'] == 0, 1, mrr['k'])
+
 mrr['bad'] = [sum(mrr[['pred_1','pred_2','pred_3']].iloc[x].get_values()) for x in range(len(mrr))]
 mrr['k'] = np.where(mrr['bad'] == 0, 0, mrr['k'])
+
 MRR = sum(mrr['k'])/len(mrr)
 print(MRR)
-
 
 #%% OCCURENCES IN CHAPTERS II, IX
 # Accuracy and Macro-averaged Precision, Recall and F1-score for instances of Chapters II and IX
@@ -291,6 +291,7 @@ print('\n -> OVERALL ACCURACY full-code (II): %s' % metrics.accuracy_score(true_
 print('\n      -> Precision (II): %s' % metrics.precision_score(true_4_ii,pred_4_ii,average='macro'))
 print('\n      -> Recall (II): %s' % metrics.recall_score(true_4_ii,pred_4_ii,average='macro'))
 print('\n      -> F1 (II): %s' % metrics.f1_score(true_4_ii,pred_4_ii,average='macro'))
+
 print('\n -> OVERALL ACCURACY full-code (IX): %s' % metrics.accuracy_score(true_4_ix,pred_4_ix))
 print('\n      -> Precision (IX): %s' % metrics.precision_score(true_4_ix,pred_4_ix,average='macro'))
 print('\n      -> Recall (IX): %s' % metrics.recall_score(true_4_ix,pred_4_ix,average='macro'))
@@ -300,6 +301,7 @@ print('\n -> OVERALL ACCURACY block (II): %s' % metrics.accuracy_score(true_3_ii
 print('\n      -> Precision (II): %s' % metrics.precision_score(true_3_ii,pred_3_ii,average='macro'))
 print('\n      -> Recall (II): %s' % metrics.recall_score(true_3_ii,pred_3_ii,average='macro'))
 print('\n      -> F1 (II): %s' % metrics.f1_score(true_3_ii,pred_3_ii,average='macro'))
+
 print('\n -> OVERALL ACCURACY block (IX): %s' % metrics.accuracy_score(true_3_ix,pred_3_ix))
 print('\n      -> Precision (IX): %s' % metrics.precision_score(true_3_ix,pred_3_ix,average='macro'))
 print('\n      -> Recall (IX): %s' % metrics.recall_score(true_3_ix,pred_3_ix,average='macro'))
@@ -310,13 +312,17 @@ print('\n      -> F1 (IX): %s' % metrics.f1_score(true_3_ix,pred_3_ix,average='m
 
 code = 'I20'
 custom = pd.DataFrame([x[:len(code)] for x in labels_cid])
+
 custom['pred'] = [x[:len(code)] for x in [x[0] for x in labels_pred]]
 custom['code_occur'] = (custom[0]==code) | (custom['pred']==code)
 custom['correct'] = custom[0]==custom['pred']
+
 custom = custom[ custom['code_occur'] | custom['correct'] ]
 custom = custom.drop(['code_occur', 'correct'],1)
+
 custom[0] = custom[0] == code
 custom['pred'] = custom['pred'] == code
+
 print('%s cases of %s' %(np.sum(custom[0]),code))
 print(metrics.confusion_matrix(custom[0],custom['pred']))
 print('Accuracy: %s' % metrics.accuracy_score(custom[0], custom['pred']))
@@ -328,15 +334,12 @@ print('F1-Score: %s' % metrics.f1_score(custom[0],custom['pred']))
 # Precision Recall and F1-Score for the 20 most common cancer types in the dataset
 
 import matplotlib
-
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 13}
-
 matplotlib.rc('font', **font)
 
 cancer_ = ['C34', 'C18','C50', 'C80', 'C25', 'C43', 'C85','C16','C15','C71','C22','C67','C64','C92', 'C56','C26','C20','C90', 'C19', 'C61']
-
 cancer = pd.DataFrame(cancer_)
 cancer['occurr'] = 0
 
@@ -354,19 +357,15 @@ for i in range(len(cancer)):
     cancer.set_value(i,'p', metrics.precision_score(custom[0],custom['pred']))
     cancer.set_value(i,'r', metrics.recall_score(custom[0],custom['pred']))
     cancer.set_value(i,'f', metrics.f1_score(custom[0],custom['pred']))
-   
-cancer = cancer.sort('occurr', ascending=False)    
+
+cancer = cancer.sort_values('occurr', ascending=False)
 cancer = cancer.reset_index(drop=True)
 
 plt.rcParams.update({'font.size': 12})
-
 fig = plt.figure(figsize=(15,7.5))
-
 ax = fig.add_subplot(111)
 ax2 = ax.twinx()
-
 plt.ylim([0.6,1])
-
 plt.grid(b=True, which='major', linestyle='--', alpha=0.4)
 
 cancer.occurr.plot(kind='bar', color='grey', ax=ax, align='center')
@@ -380,7 +379,6 @@ ax.set_ylabel('Occurrences in test data')
 plt.title('Performance metrics for the 10 most common ICD-10 codes in dataset')
 
 plt.legend()
- 
 plt.show()
 #fig.savefig('top10_performance', dpi=1000,  bbox_inches='tight')
 
@@ -390,47 +388,26 @@ plt.show()
 classes = np.zeros(22)
 
 classes[0] = len([x for x in labels_cid if x < 'C000'])
-
 classes[1] = len([x for x in [x for x in labels_cid if x > 'C0'] if x < 'D49'])
-
 classes[2] = len([x for x in [x for x in labels_cid if x > 'D5'] if x < 'D90'])
-
 classes[3] = len([x for x in [x for x in labels_cid if x > 'E0'] if x < 'E91'])
-
 classes[4] = len([x for x in [x for x in labels_cid if x > 'F0'] if x < 'G0'])
-
 classes[5] = len([x for x in [x for x in labels_cid if x > 'G0'] if x < 'H0'])
-
 classes[6] = len([x for x in [x for x in labels_cid if x > 'H0'] if x < 'H60'])
-
 classes[7] = len([x for x in [x for x in labels_cid if x > 'H6'] if x < 'H96'])
-
 classes[8] = len([x for x in [x for x in labels_cid if x > 'I0'] if x < 'J00'])
-
 classes[9] = len([x for x in [x for x in labels_cid if x > 'J0'] if x < 'K00'])
-
 classes[10] =len([x for x in [x for x in labels_cid if x > 'K0'] if x < 'K94'])
-
 classes[11] =len([x for x in [x for x in labels_cid if x > 'L0'] if x < 'M00'])
-
 classes[12] =len([x for x in [x for x in labels_cid if x > 'M0'] if x < 'N00'])
-
 classes[13] =len([x for x in [x for x in labels_cid if x > 'N0'] if x < 'O00'])
-
 classes[14] =len([x for x in [x for x in labels_cid if x > 'O0'] if x < 'P00'])
-
 classes[15] =len([x for x in [x for x in labels_cid if x > 'P0'] if x < 'P97'])
-
 classes[16] =len([x for x in [x for x in labels_cid if x > 'Q0'] if x < 'R00'])
-
 classes[17] =len([x for x in [x for x in labels_cid if x > 'R0'] if x < 'S00'])
-
 classes[18] =len([x for x in [x for x in labels_cid if x > 'S0'] if x < 'T99'])
-
 classes[19] = len([x for x in [x for x in labels_cid if x > 'V01'] if x < 'Y99'])
-
 classes[20] = len([x for x in labels_cid if x > 'Z0'])
-
 classes[21] = len([x for x in [x for x in labels_cid if x > 'U0'] if x < 'V00'])
 
 for i in range(len(classes)):
@@ -446,14 +423,17 @@ print('\n -> OVERALL ACCURACY (FULL-CODE): %s' % metrics.accuracy_score(true_4,p
 print('\n      -> Precision (FULL-CODE): %s' % metrics.precision_score(true_4,pred_4,average='macro'))
 print('\n      -> Recall (FULL-CODE): %s' % metrics.recall_score(true_4,pred_4,average='macro'))
 print('\n      -> F1 (FULL-CODE): %s' % metrics.f1_score(true_4,pred_4,average='macro'))
+
 print('\n -> OVERALL ACCURACY (BLOCKS): %s' % metrics.accuracy_score(true_3,pred_3))
 print('\n      -> Precision (BLOCKS): %s' % metrics.precision_score(true_3,pred_3,average='macro'))
 print('\n      -> Recall (BLOCKS): %s' % metrics.recall_score(true_3,pred_3,average='macro'))
 print('\n      -> F1 (BLOCKS): %s' % metrics.f1_score(true_3,pred_3,average='macro'))
+
 print('\n -> OVERALL ACCURACY (CHAPTER): %s' % metrics.accuracy_score(c_labels_cid,c_labels_pred))
 print('\n      -> Precision (CHAPTER): %s' % metrics.precision_score(c_labels_cid,c_labels_pred,average='macro'))
 print('\n      -> Recall (CHAPTER): %s' % metrics.recall_score(c_labels_cid,c_labels_pred,average='macro'))
 print('\n      -> F1 (CHAPTER): %s' % metrics.f1_score(c_labels_cid,c_labels_pred,average='macro'))
+
 print('\n -> PRECISION; RECALL; F1 SCORE: ')
 for i in range(len(f1_per_class)):
     print('\n   | CLASS %s: %s  ;  %s  ;  %s' % (list(set(c_labels_cid))[i], p_per_class[i], r_per_class[i], f1_per_class[i]))
