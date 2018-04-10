@@ -1,8 +1,8 @@
-# ICD-10 Discharge Summary Coding with Deep Neural Networks
+# Deep Neural Networks for Coding Hospital Discharge Summaries According to ICD-10
 
 This work was developed in the context of a MSc thesis at Instituto Superior Técnico, University of Lisbon.
 
-The source code in this project leverages the keras.io deep learning libray for implementing a deep neural network that combines word embeddings, recurrent units, and neural attention as mechanisms for the task of automatic assignment of ICD-10 codes for diagnosis, by analyzing free-text descriptions in discharge summaries.
+The source code in this project leverages the keras.io deep learning libray for implementing a deep neural network that combines word embeddings, recurrent units, and neural attention as mechanisms for the task of automatically assigning ICD-10 diagnostic codes, by analyzing free-text descriptions within patient discharge summaries.
 
 This neural network also explores the hierarchical nature of the input data, by building representations from the sequences of words within individual fields, which are then combined according to the sequences of fields that compose the input. This part of the neural network takes it inspiration on the model advanced by Yang et al. (2016)
 
@@ -16,24 +16,6 @@ This neural network also explores the hierarchical nature of the input data, by 
 
 Moreover, a mechanism for initializing the weights of the final nodes of the network is also used, leveraging co-occurrences between classes togheter with the hierarchical structure of ICD-10.
 
-For further information about the method, the reader can refer to the following two publications: 
-
-    @inproceedings{duarte2017deep,
-      title={A Deep Learning Method for ICD-10 Coding of Free-Text Death Certificates},
-      author={Duarte, Francisco and Martins, Bruno and Pinto, C{\'a}tia Sousa and Silva, M{\'a}rio J},
-      booktitle={Proceedings of the Portuguese Conference on Artificial Intelligence},
-      year={2017},
-      url={https://link.springer.com/chapter/10.1007/978-3-319-65340-2_12}
-    }
-
-    @article{duarte2018deep,
-      title={Deep Neural Models for ICD-10 Coding of Death Certificates and Autopsy Reports in Free-Text},
-      author={Duarte, Francisco and Martins, Bruno and Pinto, C{\'a}tia Sousa and Silva, M{\'a}rio J},
-      journal={Journal of Biomedical Informatics},
-      year={2018},
-      url={http://linkinghub.elsevier.com/retrieve/pii/S1532046418300303}
-    }
-
 The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 ### Training a model
@@ -44,7 +26,7 @@ The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 3. The following files are saved: `modelo_full_nmf.h5`, `DICT.npy`, `FULL_CODES.npy`, `BLOCKS.npy`. These are the files needed to load the model in a different script.
 
-4. To predict the ICD-10 code of new instances, use `predict_dnn.py`. This script loads the files mentioned in the previous point and defines a `PREDICT` function. This function recieves 9 parameters: part 1 a), part 1 b), part 1 c), part 1 d), part 2, clinical bulletin diagnosis field, clinical bulletin circumnstances of admission field, clinical bulletin clinical situation field and autopsy report. See examples:
+4. To predict the ICD-10 code of new instances, use `predict_dnn.py`. This script loads the files mentioned in the previous point and defines a `PREDICT` function. See the following examples:
 
         PREDICT(['Acidente vascular cerebral isquémico do hemisfério direito'],['Estenose crítica da artéria carótida direita'],['Doença Ateroscrerótica'],[''],['Colecistite aguda gangrenada complicada com choque séptico'],[''],[''],[''],[''])
         >>> 'I632'
