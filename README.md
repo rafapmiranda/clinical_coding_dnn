@@ -1,8 +1,8 @@
-# ICD-10 Mortality Coding with Deep Neural Networks
+# ICD-10 Discharge Summary Coding with Deep Neural Networks
 
 This work was developed in the context of a MSc thesis at Instituto Superior Técnico, University of Lisbon.
 
-The source code in this project leverages the keras.io deep learning libray for implementing a deep neural network that combines word embeddings, recurrent units, and neural attention as mechanisms for the task of automatic assignment of ICD-10 codes for causes of death, by analyzing free-text descriptions in death certificates, together with the associated autopsy reports and clinical bulletins.
+The source code in this project leverages the keras.io deep learning libray for implementing a deep neural network that combines word embeddings, recurrent units, and neural attention as mechanisms for the task of automatic assignment of ICD-10 codes for diagnosis, by analyzing free-text descriptions in discharge summaries.
 
 This neural network also explores the hierarchical nature of the input data, by building representations from the sequences of words within individual fields, which are then combined according to the sequences of fields that compose the input. This part of the neural network takes it inspiration on the model advanced by Yang et al. (2016)
 
@@ -38,7 +38,7 @@ The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 ### Training a model
 
-1. Using a `.txt` file with your dataset (see `example_dataset.txt`), execute the `mortality_coding_dnn.py` indicating the dataset file directory in `line 94` of the code.
+1. Using a `.txt` file with your dataset (see `example_dataset.txt`), execute the `clinical_coding_dnn.py` indicating the dataset file directory in `line 94` of the code.
 
 2. After the training is complete, the model saves a `.txt` file with the output (see `example_predictions.txt`)
 
