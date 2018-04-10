@@ -44,7 +44,7 @@ The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 3. The following files are saved: `modelo_full_nmf.h5`, `DICT.npy`, `FULL_CODES.npy`, `BLOCKS.npy`. These are the files needed to load the model in a different script.
 
-4. To predict the ICD-10 code of new instances, use `predict_multi.py`. This script loads the files mentioned in the previous point and defines a `PREDICT` function. This function recieves 9 parameters: part 1 a), part 1 b), part 1 c), part 1 d), part 2, clinical bulletin diagnosis field, clinical bulletin circumnstances of admission field, clinical bulletin clinical situation field and autopsy report. See examples:
+4. To predict the ICD-10 code of new instances, use `predict_dnn.py`. This script loads the files mentioned in the previous point and defines a `PREDICT` function. This function recieves 9 parameters: part 1 a), part 1 b), part 1 c), part 1 d), part 2, clinical bulletin diagnosis field, clinical bulletin circumnstances of admission field, clinical bulletin clinical situation field and autopsy report. See examples:
 
         PREDICT(['Acidente vascular cerebral isquémico do hemisfério direito'],['Estenose crítica da artéria carótida direita'],['Doença Ateroscrerótica'],[''],['Colecistite aguda gangrenada complicada com choque séptico'],[''],[''],[''],[''])
         >>> 'I632'
