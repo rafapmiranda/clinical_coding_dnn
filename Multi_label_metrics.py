@@ -10,6 +10,8 @@ import numpy as np
 
 np.random.seed(1337) # for reproducibility
 
+from keras import backend as K
+
 labels_pred = np.genfromtxt('example_predictions.txt', dtype = 'str')
 
 labels_cid = [[x[0]] for x in labels_pred]
@@ -125,6 +127,15 @@ def one_error(y_true, y_pred):
         else:
             m_list.append(0)
     return np.mean(m_list)
+
+def jaccard_distance_loss(y_true, y_pred, smooth=100):
+    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
+    sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+    return (1 - jac) * smooth
+    
+def combined_loss(y_true, y_pred):
+    return jaccard_distance_loss(y_true, y_pred) + K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
 
 print('\n -> EXAMPLE-BASED PERFORMANCE METRICS (FULL-CODES):')
 print('\n      -> Accuracy: %s' % ex_based_acc(labels_cid, labels_pred))
