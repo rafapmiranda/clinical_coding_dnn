@@ -8,37 +8,36 @@ import numpy as np
 from keras.models import Model
 from keras.utils.np_utils import to_categorical
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.multiclass import OneVsRestClassifier
+from skmultilearn.problem_transform import LabelPowerset
+from skmultilearn.problem_transform import BinaryRelevance
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Wraper over the MultinomialNB classifier from sklearn
 class LMWrapper(Model):
 
-    def __init__(self, C=1.0, use_idf=False, two_vectors=True, filename=None, **kwargs):
-        self.lm = MultinomialNB( )
-        self.vect1 = TfidfVectorizer(norm=None, use_idf=use_idf, min_df=0.0, ngram_range=(1, 3))
-        self.vect2 = TfidfVectorizer(norm=None, use_idf=use_idf, min_df=0.0, ngram_range=(1, 3))
+    def __init__(self, C=1.0, use_idf=False, filename=None, **kwargs):
+        self.lm = MultinomialNB()
+        self.vect1 = TfidfVectorizer(norm=None, use_idf=use_idf, min_df=0.0, ngram_range=(1, 1))
+        self.selector = sklearn.feature_selection.SelectKBest(k='all')
         self.output_dim = 0
-        self.two_vectors = two_vectors
         if filename is not None: self.load(filename)
 
-    def build_representation( self, x, fit=False ):
-        if not(self.two_vectors):
-            auxX = [ ' \n '.join( [ ' '.join( [ 'w_'+str(token) for token in field if token != 0 ] ) for field in instance ] ) for instance in x ]
-            if fit : return self.vect1.fit_transform(auxX).todense()
-            else : return self.vect1.transform(auxX).todense()
-        auxX1 = [ ' \n '.join( [ ' '.join( [ 'w_'+str(token) for token in field if token != 0 ] ) for field in instance[0:5,] ] ) for instance in x ]
-        auxX1 = [ 'main \n ' + x for x in auxX1 ]
-        if fit : auxX1 = self.vect1.fit_transform(auxX1)
-        else : auxX1 = self.vect1.transform(auxX1)
-        auxX2 = [ ' \n '.join( [ ' '.join( [ 'w_'+str(token) for token in field if token != 0 ] ) for field in instance[6:9,] ] ) for instance in x ]
-        auxX2 = [ 'aux \n ' + x for x in auxX2 ]
-        if fit : auxX2 = self.vect2.fit_transform(auxX2)
-        else : auxX2 = self.vect2.transform(auxX2)
-        return np.concatenate( [auxX1.todense() , auxX2.todense()] , axis=1)
+    def build_representation( self, x, y=None, fit=False ):
+        auxX = [ ' \n '.join( [ ' '.join( [ 'w_'+str(token) for token in field if token != 0 ] ) for field in instance ] ) for instance in x ]
+        if fit: self.vect1.fit(auxX)
+        auxX = self.vect1.transform(auxX)
+        if fit: self.selector.fit(auxX,np.array([ np.argmax(i) for i in y ]))
+        auxX = self.selector.transform(auxX)
+        return auxX.todense()
         
     def fit( self, x, y, validation_data=None):
-        auxX = self.build_representation(x,fit=True)
         auxY = y
+        print('Build representation...')
+        auxX = self.build_representation(x,auxY,fit=True)
+        #self.lm.fit( auxX , np.array([ np.argmax(i) for i in auxY ]) )
+        print('auxX shape:',auxX.shape)
+        print('Fit model...')
         self.lm.fit( auxX , np.array([ np.argmax(i) for i in auxY ]) )
         self.output_dim = auxY.shape[1]
         if validation_data is None: return None
@@ -48,8 +47,9 @@ class LMWrapper(Model):
 		
     def predict(self, x):
         auxX = self.build_representation(x,fit=False)
+        print('Predicting baseline...')
         auxY = self.lm.predict(auxX)
-        auxY = to_categorical(auxY)
+        #auxY = to_categorical(auxY)
         if auxY.shape[1] < self.output_dim:
             npad = ((0, 0), (0, self.output_dim-auxY.shape[1]))
             auxY = np.pad(auxY, pad_width=npad, mode='constant', constant_values=0)
@@ -57,6 +57,7 @@ class LMWrapper(Model):
 	
     def predict_prob(self, x):
         auxX = self.build_representation(x,fit=False)
+        print('Predicting baseline...')
         auxY = self.lm.predict_proba(auxX)
         if auxY.shape[1] < self.output_dim:
             npad = ((0, 0), (0, self.output_dim-auxY.shape[1]))
@@ -71,18 +72,16 @@ class LMWrapper(Model):
 	
     def save(self, filename):
         f = open(filename, "wb")
-        pickle.dump(self.lm, f)
-        pickle.dump(self.vect1, f)
-        pickle.dump(self.vect2, f)
-        pickle.dump(self.output_dim, f)
-        pickle.dump(self.two_vectors, f)
+        pickle.dump(self.lm, f, protocol=4)
+        pickle.dump(self.vect1, f, protocol=4)
+        pickle.dump(self.selector, f, protocol=4)
+        pickle.dump(self.output_dim, f, protocol=4)
         f.close()
 	
     def load(self, filename): 
         f = open(filename, "rb")
         self.lm = pickle.load(f)
         self.vect1 = pickle.load(f)
-        self.vect2 = pickle.load(f)
+        self.selector = pickle.load(f)
         self.output_dim = pickle.load(f)
-        self.two_vectors = pickle.load(f)
         f.close()
