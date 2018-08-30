@@ -228,17 +228,17 @@ labels = to_categorical(labels_int)
 num_classes=1+max([max(x) for x in labels_int_aux])    
 labels_aux = np.zeros((len(labels), num_classes), dtype=np.float64)
 for i in range(len(labels_int_aux)):
-    labels_aux[i,:] = sum( to_categorical(labels_int_aux[i],num_classes))
+    labels_aux[i,:] = sum( to_categorical(list(set(labels_int_aux[i])),num_classes))
     
 num_classes_3=1+max([max(x) for x in labels_int_3_aux])    
 labels_3_aux = np.zeros((len(labels), num_classes_3), dtype=np.float64)
 for i in range(len(labels_int_3_aux)):
-    labels_3_aux[i,:] = sum( to_categorical(labels_int_3_aux[i],num_classes_3))
+    labels_3_aux[i,:] = sum( to_categorical(list(set(labels_int_3_aux[i])),num_classes_3))
     
 num_classes_chap=1+max([max(x) for x in labels_cid_chap])
 labels_chap = np.zeros((len(labels),num_classes_chap), dtype=np.float64)
 for i in range(len(labels_cid_chap)):
-    labels_chap[i,:] = sum( to_categorical(labels_cid_chap[i],num_classes_chap))
+    labels_chap[i,:] = sum( to_categorical(list(set(labels_cid_chap[i])),num_classes_chap))
     
 #%%
 print('Spliting the data into a training set and a validation set...')
