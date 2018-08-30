@@ -63,16 +63,16 @@ from lmwrapper import LMWrapper
 time_start = time.clock()
 
 # Stopping Criteria for training the model
-earlyStopping = EarlyStopping(monitor = 'loss', min_delta = 0.3, patience=1, verbose=0, mode='auto')          
+earlyStopping = EarlyStopping(monitor = 'loss', patience=1, verbose=0, mode='auto')          
 
 # Set parameters:
 max_features = 150000           # Maximum number of tokens in vocabulary
-maxlen = 50                     # Maximum Length of each Sentence
+maxlen = 30                     # Maximum Length of each Sentence
 maxsents = 35                   # Maximum Number of Sentences (9 for Discharge diagnosis + 1 for Internment reason + 25 for Clinical summary)
-batch_size = 6                  # Batch size given to the model while training
+batch_size = 16                 # Batch size given to the model while training
 embedding_dims = 175            # Embedding Dimensions
-maxchars_word = 25              # Maximum number of chars in each token
-nb_epoch = 50                   # Number of epochs for training
+maxchars_word = 15              # Maximum number of chars in each token
+nb_epoch = 100                  # Number of epochs for training
 validation_split = 0.25         # Percentage of the dataset used in validation                                                         
 gru_output_size = 175           # GRU output dimension
 
@@ -81,7 +81,7 @@ print('Loading data...')
 print('Computation parameters: (%s, (%s, %s, %s))' % (max_features, maxsents, maxlen, maxchars_word))
 # Shape of each line in dataset:
 # 'Full ICD-9 code of main diagnosis' <> 'Discharge Diagnosis' <> 'Internment Reason' <> 'Clinical Summary' <> 'Full ICD-9 codes present in Discharge summary'
-texts = [ line.rstrip('\n') for line in codecs.open('dataset_input_hba_full.txt', encoding="iso-8859-1") ]                                                    
+texts = [ line.rstrip('\n') for line in codecs.open('dataset_example_hba_full.txt', encoding="iso-8859-1") ]                                                    
 print('\nDataset size is %s.' % len(texts))
 # labels_cid is a list of the ICD-9 full code for the main diagnosis for each dataset entry
 labels_cid = list([ line.split('<>')[0][:-1] for line in texts ])
@@ -158,41 +158,41 @@ for i in range(len(labels_int_aux)):
     labels_int_aux[i] = char4_aux.transform(labels_int_aux[i])
     labels_int_3_aux[i] = char3_aux.transform(labels_int_3_aux[i])
 
-part_1a = [ line.split('<>')[1].lower() for line in texts ]
-part_1b = [ line.split('<>')[2].lower() for line in texts ]
-part_1c = [ line.split('<>')[3].lower() for line in texts ]
-part_1d = [ line.split('<>')[4].lower() for line in texts ]
-part_1e = [ line.split('<>')[5].lower() for line in texts ]
-part_1f = [ line.split('<>')[6].lower() for line in texts ]
-part_1g = [ line.split('<>')[7].lower() for line in texts ]
-part_1h = [ line.split('<>')[8].lower() for line in texts ]
-part_1i = [ line.split('<>')[9].lower() for line in texts ]
-mi = [ line.split('<>')[10].lower() for line in texts ]
-rc_1 = [ line.split('<>')[11].lower() for line in texts ]
-rc_2 = [ line.split('<>')[12].lower() for line in texts ]
-rc_3 = [ line.split('<>')[13].lower() for line in texts ]
-rc_4 = [ line.split('<>')[14].lower() for line in texts ]
-rc_5 = [ line.split('<>')[15].lower() for line in texts ]
-rc_6 = [ line.split('<>')[16].lower() for line in texts ]
-rc_7 = [ line.split('<>')[17].lower() for line in texts ]
-rc_8 = [ line.split('<>')[18].lower() for line in texts ]
-rc_9 = [ line.split('<>')[19].lower() for line in texts ]
-rc_10 = [ line.split('<>')[20].lower() for line in texts ]
-rc_11 = [ line.split('<>')[21].lower() for line in texts ]
-rc_12 = [ line.split('<>')[22].lower() for line in texts ]
-rc_13 = [ line.split('<>')[23].lower() for line in texts ]
-rc_14 = [ line.split('<>')[24].lower() for line in texts ]
-rc_15 = [ line.split('<>')[25].lower() for line in texts ]
-rc_16 = [ line.split('<>')[26].lower() for line in texts ]
-rc_17 = [ line.split('<>')[27].lower() for line in texts ]
-rc_18 = [ line.split('<>')[28].lower() for line in texts ]
-rc_19 = [ line.split('<>')[29].lower() for line in texts ]
-rc_20 = [ line.split('<>')[30].lower() for line in texts ]
-rc_21 = [ line.split('<>')[31].lower() for line in texts ]
-rc_22 = [ line.split('<>')[32].lower() for line in texts ]
-rc_23 = [ line.split('<>')[33].lower() for line in texts ]
-rc_24 = [ line.split('<>')[34].lower() for line in texts ]
-rc_25 = [ line.split('<>')[35].lower() for line in texts ]
+part_1a = [ line.split('<>')[1] for line in texts ]
+part_1b = [ line.split('<>')[2] for line in texts ]
+part_1c = [ line.split('<>')[3] for line in texts ]
+part_1d = [ line.split('<>')[4] for line in texts ]
+part_1e = [ line.split('<>')[5] for line in texts ]
+part_1f = [ line.split('<>')[6] for line in texts ]
+part_1g = [ line.split('<>')[7] for line in texts ]
+part_1h = [ line.split('<>')[8] for line in texts ]
+part_1i = [ line.split('<>')[9] for line in texts ]
+mi = [ line.split('<>')[10] for line in texts ]
+rc_1 = [ line.split('<>')[11] for line in texts ]
+rc_2 = [ line.split('<>')[12] for line in texts ]
+rc_3 = [ line.split('<>')[13] for line in texts ]
+rc_4 = [ line.split('<>')[14] for line in texts ]
+rc_5 = [ line.split('<>')[15] for line in texts ]
+rc_6 = [ line.split('<>')[16] for line in texts ]
+rc_7 = [ line.split('<>')[17] for line in texts ]
+rc_8 = [ line.split('<>')[18] for line in texts ]
+rc_9 = [ line.split('<>')[19] for line in texts ]
+rc_10 = [ line.split('<>')[20] for line in texts ]
+rc_11 = [ line.split('<>')[21] for line in texts ]
+rc_12 = [ line.split('<>')[22] for line in texts ]
+rc_13 = [ line.split('<>')[23] for line in texts ]
+rc_14 = [ line.split('<>')[24] for line in texts ]
+rc_15 = [ line.split('<>')[25] for line in texts ]
+rc_16 = [ line.split('<>')[26] for line in texts ]
+rc_17 = [ line.split('<>')[27] for line in texts ]
+rc_18 = [ line.split('<>')[28] for line in texts ]
+rc_19 = [ line.split('<>')[29] for line in texts ]
+rc_20 = [ line.split('<>')[30] for line in texts ]
+rc_21 = [ line.split('<>')[31] for line in texts ]
+rc_22 = [ line.split('<>')[32] for line in texts ]
+rc_23 = [ line.split('<>')[33] for line in texts ]
+rc_24 = [ line.split('<>')[34] for line in texts ]
+rc_25 = [ line.split('<>')[35] for line in texts ]
 
 age = [ int(line.split(' <> ')[36]) for line in texts ]
 dep = [ line.split('<>')[37].lower() for line in texts ]
@@ -301,7 +301,7 @@ for i in range(len(word_keys)):
 tokenizer.word_index = word_index
 
 # Text representation based on characters and word case
-case2Idx = {'numeric': 1, 'allLower':2, 'allUpper':3, 'initialUpper':4, 'other':5, 'mainly_numeric':6, 'contains_digit': 7, 'PADDING_TOKEN':0}
+case2Idx = {'start_token':1, 'allLower':2, 'allUpper':3, 'initialUpper':4, 'numeric':5, 'contains_digit':6, 'other':7, 'PADDING_TOKEN':0}
 caseEmbeddings = np.identity(len(case2Idx), dtype='float32')
 char2Idx = {"PADDING":0, "UNKNOWN":1}
 for c in " 0123456789abcdefghijklmnopqrstuvwxyzàáâãéêíóôõúüABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÉÊÍÓÔÕÚÜ.,-_()[]{}!?:;#'\"/\\%$`&=*+@^~|": char2Idx[c] = len(char2Idx)
@@ -311,9 +311,8 @@ def getCasing(word, caseLookup):
     numDigits = 0
     for char in word:
         if char.isdigit(): numDigits += 1
-    digitFraction = numDigits / float(len(word))
-    if word.isdigit(): casing = 'numeric'
-    elif digitFraction > 0.5: casing = 'mainly_numeric'
+    if word == '873heGKe7I': casing = 'start_token'
+    elif word == 'NUMBER': casing = 'numeric'
     elif word.islower(): casing = 'allLower'
     elif word.isupper(): casing = 'allUpper'
     elif word[0].isupper(): casing = 'initialUpper'
@@ -328,10 +327,10 @@ def getChars(word, charLookup):
     while len(aux) < maxchars_word: aux.append(charLookup["PADDING"])
     return np.array( aux )
 
-# Conversion of each dataset entry in a (35,50) shape matrix resulting in variables:
+# Conversion of each dataset entry in a (35,30) shape matrix resulting in variables:
 print('\nComputing Training Set...')
 
-# Data is a (35,50) matrix for the strings in discharge summaries (X_train_char has a (35,50,25) shape because of character-level dimention)
+# Data is a (35,30) matrix for the strings in discharge summaries (X_train_char has a (35,30,15) shape because of character-level dimention)
 X_train = np.zeros((len(X_train_1a), maxsents, maxlen), dtype = 'int32')
 X_train_char = np.zeros((len(X_train_1a), maxsents, maxlen, maxchars_word), dtype = 'int8')
 X_train_casing = np.zeros((len(X_train_1a), maxsents, maxlen), dtype = 'int8')
@@ -346,11 +345,11 @@ for m in range(len(discharge_summary)):
         k = 0
         for j, sent in enumerate(sentences):
             if j < maxsents:
-                wordTokens = text_to_word_sequence(sent)
+                wordTokens = text_to_word_sequence(sent, lower=False)
                 for _ , word in enumerate(wordTokens):
-                    # if the word is out-of-vocabulary it is substituted by the most similar word in the dictionary
-                    if word not in tokenizer.word_index: 
-                        aux = [(jellyfish.jaro_winkler(k,word),v) for k,v in tokenizer.word_index.items()]
+                # if the word is out-of-vocabulary it is substituted by the most similar word in the dictionary
+                    if word.lower() not in tokenizer.word_index: 
+                        aux = [(jellyfish.jaro_winkler(k,word.lower()),v) for k,v in tokenizer.word_index.items()]
                         if k < maxlen and max(aux)[1] < max_features:
                             X_train[i,m,k] = max(aux)[1]
                             X_train_casing[i,m,k] = getCasing(word,case2Idx)
@@ -358,8 +357,8 @@ for m in range(len(discharge_summary)):
                             X_train_char[i,m,k,:] = getChars(word,char2Idx)
                             k = k + 1
                     else:
-                        if k < maxlen and tokenizer.word_index[word] < max_features:
-                            X_train[i,m,k] = tokenizer.word_index[word]
+                        if k < maxlen and tokenizer.word_index[word.lower()] < max_features:
+                            X_train[i,m,k] = tokenizer.word_index[word.lower()]
                             X_train_casing[i,m,k] = getCasing(word,case2Idx)
                             if len(word) > maxchars_word-1: word = word[:(maxchars_word-1)]
                             X_train_char[i,m,k,:] = getChars(word,char2Idx)
@@ -390,11 +389,11 @@ for m in range(len(discharge_summary)):
         sentences = tokenize.sent_tokenize( sentences )
         k = 0
         for j, sent in enumerate(sentences):
-            wordTokens = text_to_word_sequence(sent)
+            wordTokens = text_to_word_sequence(sent, lower=False)
             for _ , word in enumerate(wordTokens):
                 # if the word is out-of-vocabulary it is substituted by the most similar word in the dictionary
-                if word_index.get(word) == None: 
-                    aux = [(jellyfish.jaro_winkler(k,word),v) for k,v in word_index.items()]
+                if word_index.get(word.lower()) == None: 
+                    aux = [(jellyfish.jaro_winkler(k,word.lower()),v) for k,v in word_index.items()]
                     if k < maxlen and max(aux)[1] < max_features:
                         X_test[i,m,k] = max(aux)[1]
                         X_test_casing[i,m,k] = getCasing(word,case2Idx)
@@ -402,8 +401,8 @@ for m in range(len(discharge_summary)):
                         X_test_char[i,m,k,:] = getChars(word,char2Idx)
                         k = k + 1
                 else:
-                    if k < maxlen and word_index.get(word) < max_features:
-                        X_test[i,m,k] = word_index.get(word)
+                    if k < maxlen and word_index.get(word.lower()) < max_features:
+                        X_test[i,m,k] = word_index.get(word.lower())
                         X_test_casing[i,m,k] = getCasing(word,case2Idx)
                         if len(word) > maxchars_word-1: word = word[:(maxchars_word-1)]
                         X_test_char[i,m,k,:] = getChars(word,char2Idx)
@@ -483,7 +482,7 @@ dep_input = Input(shape=(X_train_dep.shape[1],), dtype='float32')
 aux_input = Input(shape=(y_train_aux.shape[1],), dtype='float32')
 
 # Embedding Layers
-embedding_layer_words = Embedding(max_features, embedding_dims, input_length=maxlen)
+embedding_layer_words = Embedding(len(word_index), embedding_dims, input_length=maxlen)
 embedding_layer_casing = Embedding(output_dim=caseEmbeddings.shape[1], input_dim=caseEmbeddings.shape[0], weights=[caseEmbeddings], trainable=False)
 embedding_layer_character = Embedding(len(char2Idx),25,embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5))
 
