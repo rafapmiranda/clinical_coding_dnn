@@ -29,7 +29,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.preprocessing import sequence
 from keras.models import Sequential
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Masking
 from keras.layers import Dense
 from keras.layers import Embedding
@@ -63,16 +63,17 @@ from lmwrapper import LMWrapper
 time_start = time.clock()
 
 # Stopping Criteria for training the model
-earlyStopping = EarlyStopping(monitor = 'loss', patience=1, verbose=0, mode='auto')          
+earlyStopping = EarlyStopping(monitor = 'loss', patience=1, verbose=0, mode='auto')
+modelChekpoint = ModelCheckpoint(filepath = 'modelo_full.h5', monitor = 'loss', verbose=0, save_best_only=True, mode='auto')
 
 # Set parameters:
 max_features = 150000           # Maximum number of tokens in vocabulary
 maxlen = 30                     # Maximum Length of each Sentence
 maxsents = 35                   # Maximum Number of Sentences (9 for Discharge diagnosis + 1 for Internment reason + 25 for Clinical summary)
-batch_size = 16                 # Batch size given to the model while training
+batch_size = 12                 # Batch size given to the model while training
 embedding_dims = 175            # Embedding Dimensions
 maxchars_word = 15              # Maximum number of chars in each token
-nb_epoch = 100                  # Number of epochs for training
+nb_epoch = 25                   # Number of epochs for training
 validation_split = 0.25         # Percentage of the dataset used in validation                                                         
 gru_output_size = 175           # GRU output dimension
 
@@ -578,8 +579,8 @@ print('Baseline prob. prediction: Time elapsed is',time_elapsed)
 time_start = time.clock()
 
 print('Fit full model...')
-model.fit([ X_train, X_train_casing, X_train_char, X_train_age, X_train_dep, X_train_aux ], [y_train, y_train_aux, y_train_3_aux, y_train_chap], batch_size=batch_size, epochs=nb_epoch, validation_data=([X_test,X_test_casing,X_test_char,X_test_age,X_test_dep,X_test_aux], [y_test, y_test_aux, y_test_3_aux, y_test_chap]), callbacks=[earlyStopping])
-model.save('modelo_full_nmf.h5')
+model.fit([ X_train, X_train_casing, X_train_char, X_train_age, X_train_dep, X_train_aux ], [y_train, y_train_aux, y_train_3_aux, y_train_chap], batch_size=batch_size, epochs=nb_epoch, validation_data=([X_test,X_test_casing,X_test_char,X_test_age,X_test_dep,X_test_aux], [y_test, y_test_aux, y_test_3_aux, y_test_chap]), callbacks=[earlyStopping, modelCheckpoint])
+model = load_model('modelo_full.h5', custom_objects = {"AttLayer": AttLayer, "LMWrapper":LMWrapper}
 
 #Checkpoint
 time_elapsed = (time.clock() - time_start)
