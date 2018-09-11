@@ -19,12 +19,12 @@ from Multi_label_metrics import ex_based_acc, ex_based_precision, ex_based_recal
 # The file predictions.txt has one array for each instance, organized in the following way:
 # true label, 3 most probable 4 digit (full-codes) predicted labels, 3 most probable 3 digit (blocks) predicted labels
 
-labels_pred = np.genfromtxt('pred_full_nmf.txt', dtype = 'str')
-labels_pred_ml = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_baseline.txt', encoding="iso_8859-1") ])
+labels_pred = np.genfromtxt('pred_full.txt', dtype = 'str')
+labels_pred_ml = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_labels.txt', encoding="iso_8859-1") ])
 
 # labels_cid has the true labels
 labels_cid = [x[0] for x in labels_pred]
-labels_cid_ml = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('true_baseline.txt', encoding="iso_8859-1") ])
+labels_cid_ml = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('true_labels.txt', encoding="iso_8859-1") ])
 # labels_pred the predicted labels
 labels_pred = [[x[1],x[2],x[3],x[4],x[5],x[6]] for x in labels_pred]
 
@@ -55,7 +55,7 @@ c_labels_cid = [x[:3] for x in labels_cid]
 labels_cid_ml_b = np.array([[x[:3] for x in line] for line in labels_cid_ml])
 
 c_labels_pred = [x[:3] for x in [x[0] for x in labels_pred]]
-labels_pred_ml_b = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_baseline_block.txt', encoding="iso_8859-1") ])
+labels_pred_ml_b = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_labels_block.txt', encoding="iso_8859-1") ])
 #%%
 def icd9_chap(lst):
     c_labels_cid = lst[:]
@@ -100,60 +100,11 @@ def icd9_chap(lst):
             c_labels_cid[i] = 19
     return c_labels_cid
 
-def icd10_chap(lst):
-    labels_cid_chap = lst[:]
-    for i in range(len(labels_cid_chap)):
-        if labels_cid_chap[i] >= 'A00' and labels_cid_chap[i] <= 'B99':
-            labels_cid_chap[i] = 1 
-        elif labels_cid_chap[i] >= 'C00' and labels_cid_chap[i] <= 'D48': 
-            labels_cid_chap[i] = 2
-        elif labels_cid_chap[i] >= 'D50' and labels_cid_chap[i] <= 'D89': 
-            labels_cid_chap[i] = 3
-        elif labels_cid_chap[i] >= 'E00' and labels_cid_chap[i] <= 'E90': 
-            labels_cid_chap[i] = 4
-        elif labels_cid_chap[i] >= 'F00' and labels_cid_chap[i] <= 'F99': 
-            labels_cid_chap[i] = 5
-        elif labels_cid_chap[i] >= 'G00' and labels_cid_chap[i] <= 'G99': 
-            labels_cid_chap[i] = 6
-        elif labels_cid_chap[i] >= 'H00' and labels_cid_chap[i] <= 'H59': 
-            labels_cid_chap[i] = 7
-        elif labels_cid_chap[i] >= 'H60' and labels_cid_chap[i] <= 'H95': 
-            labels_cid_chap[i] = 8
-        elif labels_cid_chap[i] >= 'I00' and labels_cid_chap[i] <= 'I99': 
-            labels_cid_chap[i] = 9
-        elif labels_cid_chap[i] >= 'J00' and labels_cid_chap[i] <= 'J99': 
-            labels_cid_chap[i] = 10
-        elif labels_cid_chap[i] >= 'K00' and labels_cid_chap[i] <= 'K93': 
-            labels_cid_chap[i] = 11
-        elif labels_cid_chap[i] >= 'L00' and labels_cid_chap[i] <= 'L99': 
-            labels_cid_chap[i] = 12
-        elif labels_cid_chap[i] >= 'M00' and labels_cid_chap[i] <= 'M99': 
-            labels_cid_chap[i] = 13
-        elif labels_cid_chap[i] >= 'N00' and labels_cid_chap[i] <= 'N99': 
-            labels_cid_chap[i] = 14
-        elif labels_cid_chap[i] >= 'O00' and labels_cid_chap[i] <= 'O99': 
-            labels_cid_chap[i] = 15
-        elif labels_cid_chap[i] >= 'P00' and labels_cid_chap[i] <= 'P96': 
-            labels_cid_chap[i] = 16
-        elif labels_cid_chap[i] >= 'Q00' and labels_cid_chap[i] <= 'Q99': 
-            labels_cid_chap[i] = 17
-        elif labels_cid_chap[i] >= 'R00' and labels_cid_chap[i] <= 'R99': 
-            labels_cid_chap[i] = 18
-        elif labels_cid_chap[i] >= 'S00' and labels_cid_chap[i] <= 'T98': 
-            labels_cid_chap[i] = 19
-        elif labels_cid_chap[i] >= 'V01' and labels_cid_chap[i] <= 'V98': 
-            labels_cid_chap[i] = 20
-        elif labels_cid_chap[i] >= 'Z00' and labels_cid_chap[i] <= 'Z99': 
-            labels_cid_chap[i] = 21
-        else: 
-            labels_cid_chap[i] = 22
-    return labels_cid_chap
-
 c_labels_cid = icd9_chap(c_labels_cid)
 labels_cid_ml_c = np.array([icd9_chap(line) for line in labels_cid_ml_b])
 
 c_labels_pred = icd9_chap(c_labels_pred)
-labels_pred_ml_c = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_baseline_chap.txt', encoding="iso_8859-1") ])
+labels_pred_ml_c = np.array([ line.replace(',','').replace('[','').replace(']','').replace("'",'').rstrip('\n\r').split(' ') for line in codecs.open('pred_labels_chap.txt', encoding="iso_8859-1") ])
 
 for i in range(len(labels_pred_ml_c)):
     if labels_pred_ml_c[i] == ['']: labels_pred_ml_c[i] = [str(c_labels_pred[i])]
