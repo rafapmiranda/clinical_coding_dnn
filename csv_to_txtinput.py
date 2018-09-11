@@ -76,9 +76,8 @@ print('Loading data...')
 
 texts = [line.split('\t') for line in [line for line in codecs.open('dataset_hba.txt', encoding="iso-8859-1")]]
 fields = texts.pop(0)
-
 texts = [line for line in texts if len(line) == 121 and not (line[15] == '' or line[15] == ' ')]
-#%%
+
 print('Mapping ICD-9 codes...')
 labels_cid_pre = [codes(line[14]) for line in texts]
 labels_cid = clean(labels_cid_pre)
@@ -131,7 +130,7 @@ for i in range(len(res_clinic)):
 #%%
 print('Writing output...')
 
-f = open('dataset_example_hba_full.txt','w')
+f = open('dataset_input_hba_full.txt','w')
 
 for _list in texts_aux:
     if isinstance(_list,str): f.write(_list)
