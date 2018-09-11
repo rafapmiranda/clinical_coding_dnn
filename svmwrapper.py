@@ -16,7 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 class SVMWrapper(Model):
 
     def __init__(self, C=1.0, use_idf=True, filename=None, **kwargs):
-        self.svmmodel = LabelPowerset(LinearSVC( C=C , random_state=0 ))
+        self.svmmodel = LinearSVC( C=C , random_state=0 )
         self.vect1 = TfidfVectorizer(norm=None, use_idf=use_idf, min_df=0.0)
         self.selector = sklearn.feature_selection.SelectKBest(k='all')
         self.output_dim = 0
@@ -34,10 +34,9 @@ class SVMWrapper(Model):
         auxY = y
         print('Build representation...')
         auxX = self.build_representation(x,auxY,fit=True)
-        #self.svmmodel.fit( auxX , np.array([ np.argmax(i) for i in auxY ]) )
         print('auxX shape:',auxX.shape)
         print('Fit model...')
-        self.svmmodel.fit( auxX , auxY )
+        self.svmmodel.fit( auxX , np.array([ np.argmax(i) for i in auxY ]) )
         self.output_dim = auxY.shape[1]
         if validation_data is None: return None
         res = self.evaluate( validation_data[0] , validation_data[1] )
