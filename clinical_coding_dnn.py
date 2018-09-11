@@ -14,42 +14,15 @@ with warnings.catch_warnings():
     import h5py     
     import keras
     
-import os
 import time
 import codecs
 import theano
-import jellyfish
-import gc
-import itertools
-import pandas as pd
-import collections as col
-from collections import Counter 
+import jellyfish 
 from keras.preprocessing.text import Tokenizer, text_to_word_sequence
-from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-from keras.preprocessing import sequence
-from keras.models import Sequential
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers.core import Masking
-from keras.layers import Dense
-from keras.layers import Embedding
-from keras.layers import GlobalAveragePooling1D
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling1D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Reshape
-from keras.layers import Dropout
-from keras.layers import LSTM
-from keras.layers import Input
-from keras.layers import Flatten
-from keras.layers import Convolution1D, MaxPooling1D
-from keras.layers import Conv1D, MaxPool1D, Conv2D, MaxPool2D, Embedding, Dropout, LSTM, GRU, Bidirectional, TimeDistributed
-from keras.layers.normalization import BatchNormalization
-from keras.models import Model
-from keras.models import load_model
-from keras import backend as K
-from keras.engine.topology import Layer, InputSpec
-from sklearn.cross_validation import StratifiedKFold
+from keras.layers import Flatten, Input, Dense, Conv1D, MaxPool1D, GlobalAveragePooling2D, Embedding, Dropout, Reshape, GRU, Bidirectional, TimeDistributed
+from keras.models import Model, load_model
 from nltk import tokenize
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -67,16 +40,17 @@ earlyStopping = EarlyStopping(monitor = 'loss', patience=1, verbose=0, mode='aut
 modelChekpoint = ModelCheckpoint(filepath = 'modelo_full.h5', monitor = 'loss', verbose=0, save_best_only=True, mode='auto')
 
 # Set parameters:
-max_features = 150000           # Maximum number of tokens in vocabulary
-maxlen = 30                     # Maximum Length of each Sentence
-maxsents = 35                   # Maximum Number of Sentences (9 for Discharge diagnosis + 1 for Internment reason + 25 for Clinical summary)
-batch_size = 15                 # Batch size given to the model while training
-embedding_dims = 150            # Embedding Dimensions
-maxchars_word = 15              # Maximum number of chars in each token
-nb_epoch = 25                   # Number of epochs for training
-validation_split = 0.25         # Percentage of the dataset used in validation                                                         
-gru_output_size = 150           # GRU output dimension
-final_output = embedding_dims+gru_output_size
+max_features = 150000                           # Maximum number of tokens in vocabulary
+maxlen = 30                                     # Maximum Length of each Sentence
+maxsents = 35                                   # Maximum Number of Sentences (9 for Discharge diagnosis + 1 for Internment reason + 25 for Clinical summary)
+batch_size = 15                                 # Batch size given to the model while training
+embedding_dims = 150                            # Embedding Dimensions
+char_dims = 25                                  # Character Embedding Dimensions
+maxchars_word = 15                              # Maximum number of chars in each token
+nb_epoch = 25                                   # Number of epochs for training
+validation_split = 0.25                         # Percentage of the dataset used in validation                                                         
+gru_output_size = 150                           # GRU output dimension
+final_output = embedding_dims+gru_output_size   # Final Dense Layers Dimensions
 
 print('Loading data...')
 
@@ -482,9 +456,9 @@ dep_input = Input(shape=(X_train_dep.shape[1],), dtype='float32')
 aux_input = Input(shape=(y_train_aux.shape[1],), dtype='float32')
 
 # Embedding Layers
-embedding_layer_words = Embedding(len(word_index), embedding_dims, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5), input_length=maxlen)
-embedding_layer_casing = Embedding(caseEmbeddings.shape[0], 5, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5), trainable=False)
-embedding_layer_character = Embedding(len(char2Idx),25,embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5))
+embedding_layer_words = Embedding(len(word_index), embedding_dims, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5))
+embedding_layer_casing = Embedding(caseEmbeddings.shape[0], 5, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5), trainable=True)
+embedding_layer_character = Embedding(len(char2Idx),char_dims,embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5))
 
 sentence_input_words = Input(shape=(maxlen,), dtype='int32')
 embedded_sequences_words = embedding_layer_words(sentence_input_words)
@@ -494,14 +468,13 @@ embedded_sequences_casing = embedding_layer_casing(sentence_input_casing)
 
 sentence_input_chars = Input(shape=(maxlen,maxchars_word), dtype='int8')
 embedded_sequences_chars = TimeDistributed(embedding_layer_character)(sentence_input_chars)
-embedded_sequences_chars = TimeDistributed(Bidirectional(GRU(50, return_sequences=False)))(embedded_sequences_chars)
+embedded_sequences_chars = TimeDistributed(Bidirectional(GRU(char_dims, return_sequences=False)))(embedded_sequences_chars)
 
 review_words = TimeDistributed(Model(sentence_input_words, embedded_sequences_words))(review_input_words)
 review_casing = TimeDistributed(Model(sentence_input_casing, embedded_sequences_casing))(review_input_casing)
 review_chars = TimeDistributed(Model(sentence_input_chars, embedded_sequences_chars))(review_input_chars)
 
 review_embedded = keras.layers.Concatenate()( [ review_words , review_casing , review_chars] )
-print(review_embedded.shape)
 review_embedded = TimeDistributed(TimeDistributed(Dense(embedding_dims,activation='tanh')))(review_embedded)
 
 # Average of Word Embeddings
@@ -571,7 +544,7 @@ X_train_aux = model.predict_prob(X_train)[0]
 X_test_aux = model.predict_prob(X_test)[0]
 
 model = Model(inputs = [review_input_words, review_input_casing, review_input_chars, age_input, dep_input, aux_input], outputs = [preds, preds_aux, preds_3char, preds_chap])
-model.compile(loss=['categorical_crossentropy','binary_crossentropy','binary_crossentropy','binary_crossentropy'], optimizer='adam', metrics=['accuracy'], loss_weights = [0.85, 0.85, 0.75, 0.70])
+model.compile(loss=['categorical_crossentropy','binary_crossentropy','binary_crossentropy','binary_crossentropy'], optimizer='adam', metrics=['accuracy'])
 
 #Checkpoint
 time_elapsed = (time.clock() - time_start)
