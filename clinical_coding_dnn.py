@@ -70,12 +70,13 @@ modelChekpoint = ModelCheckpoint(filepath = 'modelo_full.h5', monitor = 'loss', 
 max_features = 150000           # Maximum number of tokens in vocabulary
 maxlen = 30                     # Maximum Length of each Sentence
 maxsents = 35                   # Maximum Number of Sentences (9 for Discharge diagnosis + 1 for Internment reason + 25 for Clinical summary)
-batch_size = 12                 # Batch size given to the model while training
-embedding_dims = 175            # Embedding Dimensions
+batch_size = 15                 # Batch size given to the model while training
+embedding_dims = 150            # Embedding Dimensions
 maxchars_word = 15              # Maximum number of chars in each token
 nb_epoch = 25                   # Number of epochs for training
 validation_split = 0.25         # Percentage of the dataset used in validation                                                         
-gru_output_size = 175           # GRU output dimension
+gru_output_size = 150           # GRU output dimension
+final_output = embedding_dims+gru_output_size
 
 print('Loading data...')
 
@@ -425,6 +426,13 @@ common_labels_cid = np.array(list(set([item for sublist in train_labels_aux_cid 
 init_m_full = np.zeros((y_train.shape[1],y_train.shape[1]), dtype=np.float32)
 bias_full = np.zeros((y_train.shape[1]), dtype=np.float32)
 
+def create_nmf(init_m):
+    nmf = NMF(n_components=final_output)
+    init_m = np.log2(init_m + 1)
+    nmf.fit(init_m)
+    init_m = nmf.components_
+    return init_m
+
 for n in range(len(train_labels_full)):
     row = [x for x in train_labels_aux_cid[n] if x in common_labels_cid]
     for i in row:
@@ -433,10 +441,7 @@ for n in range(len(train_labels_full)):
             b = le4.transform([j])
             init_m_full[a,b] += 1
 
-nmf = NMF(n_components=gru_output_size+embedding_dims)
-init_m_full = np.log2(init_m_full + 1)
-nmf.fit(init_m_full)
-init_m_full = nmf.components_
+init_m_full = create_nmf(init_m_full)
 
 # Multi-label Full-codes
 init_m_aux = np.zeros((num_classes,num_classes), dtype=np.float32)
@@ -447,10 +452,7 @@ for n in range(len(train_labels_aux)):
         for j in train_labels_aux[n]:
             init_m_aux[i,j] += 1
 
-nmf = NMF(n_components=gru_output_size+embedding_dims)
-init_m_aux = np.log2(init_m_aux + 1)
-nmf.fit(init_m_aux)
-init_m_aux = nmf.components_
+init_m_aux = create_nmf(init_m_aux)
 
 # Multi-label Blocks
 init_m_3 = np.zeros((num_classes_3,num_classes_3), dtype=np.float32)
@@ -461,10 +463,7 @@ for n in range(len(train_labels_3_aux)):
         for j in train_labels_3_aux[n]:
             init_m_3[i,j] += 1
 
-nmf = NMF(n_components=gru_output_size+embedding_dims)
-init_m_3 = np.log2(init_m_3 + 1)
-nmf.fit(init_m_3)
-init_m_3 = nmf.components_
+init_m_3 = create_nmf(init_m_3)
 
 #Checkpoint
 time_elapsed = (time.clock() - time_start)
@@ -483,8 +482,8 @@ dep_input = Input(shape=(X_train_dep.shape[1],), dtype='float32')
 aux_input = Input(shape=(y_train_aux.shape[1],), dtype='float32')
 
 # Embedding Layers
-embedding_layer_words = Embedding(len(word_index), embedding_dims, input_length=maxlen)
-embedding_layer_casing = Embedding(output_dim=caseEmbeddings.shape[1], input_dim=caseEmbeddings.shape[0], weights=[caseEmbeddings], trainable=False)
+embedding_layer_words = Embedding(len(word_index), embedding_dims, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5), input_length=maxlen)
+embedding_layer_casing = Embedding(caseEmbeddings.shape[0], 5, embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5), trainable=False)
 embedding_layer_character = Embedding(len(char2Idx),25,embeddings_initializer=keras.initializers.RandomUniform(minval=-0.5, maxval=0.5))
 
 sentence_input_words = Input(shape=(maxlen,), dtype='int32')
@@ -495,13 +494,14 @@ embedded_sequences_casing = embedding_layer_casing(sentence_input_casing)
 
 sentence_input_chars = Input(shape=(maxlen,maxchars_word), dtype='int8')
 embedded_sequences_chars = TimeDistributed(embedding_layer_character)(sentence_input_chars)
-embedded_sequences_chars = TimeDistributed(Bidirectional(GRU(embedding_dims, return_sequences=False)))(embedded_sequences_chars)
+embedded_sequences_chars = TimeDistributed(Bidirectional(GRU(50, return_sequences=False)))(embedded_sequences_chars)
 
 review_words = TimeDistributed(Model(sentence_input_words, embedded_sequences_words))(review_input_words)
 review_casing = TimeDistributed(Model(sentence_input_casing, embedded_sequences_casing))(review_input_casing)
 review_chars = TimeDistributed(Model(sentence_input_chars, embedded_sequences_chars))(review_input_chars)
 
 review_embedded = keras.layers.Concatenate()( [ review_words , review_casing , review_chars] )
+print(review_embedded.shape)
 review_embedded = TimeDistributed(TimeDistributed(Dense(embedding_dims,activation='tanh')))(review_embedded)
 
 # Average of Word Embeddings
@@ -537,10 +537,10 @@ l_dense_review = TimeDistributed(Dense(units=gru_output_size))(l_gru_review)
 postp = AttLayer()(l_dense_review)
 
 # Memory Mechanism
-aux_mem = Dense(units=(gru_output_size+embedding_dims), activation='tanh', weights=(init_m_aux.transpose(),np.zeros(gru_output_size+embedding_dims)), name='memory')(aux_input)
+aux_mem = Dense(units=(final_output), activation='tanh', weights=(init_m_aux.transpose(),np.zeros(gru_output_size+embedding_dims)), name='memory')(aux_input)
 postp_aux = keras.layers.Concatenate( axis = 1 )( [ postp , fasttext , aux_mem , age_input , dep_input] )
 postp = Dropout(0.05)(postp_aux)
-postp = Dense(units=(gru_output_size+embedding_dims))(postp)
+postp = Dense(units=(final_output))(postp)
 
 # Softmax/Sigmoid Output Layer
 preds = Dense(units=y_train.shape[1], activation='softmax', weights=[init_m_full, bias_full], name='main')(postp)
