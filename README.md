@@ -24,4 +24,4 @@ The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 2. After the training is complete, the model saves five `.txt` files with the outputs for each hierarchical level (e.g., `pred_full_nmf.txt`)
 
-3. The following files are saved: `modelo_full_nmf.h5`, `DICT.npy`, `MAIN.npy`, `FULL_CODES.npy` and `BLOCKS.npy`. These are the files needed to load the model.
+3. The following files are saved: `modelo_full.h5`, `DICT.npy`, `MAIN.npy`, `FULL_CODES.npy` and `BLOCKS.npy`. These are the files needed to load the model.
