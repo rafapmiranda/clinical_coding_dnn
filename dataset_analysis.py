@@ -158,18 +158,18 @@ for aux in range(len(dep)):
     for j in icd9_chap([x[:3] for x in labels_cid[aux]]):
         if j < 19: prov_chap[i][j-1] += 1
 
-fig, ax = plt.subplots(figsize=(20, 20))
+fig, ax = plt.subplots(figsize=(20, 25))
 
-im, cbar = heatmap(prov_chap, dep_options, chap_set, ax=ax,
+im = heatmap(prov_chap, dep_options, chap_set, ax=ax,
                    cmap="Reds", cbarlabel="Prevalence")
-texts = annotate_heatmap(im, valfmt="{x:.0f}")
+text = annotate_heatmap(im, valfmt="{x:.0f}")
 
 plt.ylabel('Department', fontsize='large')
 ax.set_xlabel('ICD-9 chapters', fontsize='large')    
 ax.xaxis.set_label_position('top') 
 
 fig.tight_layout()
-fig.savefig('heatmap_dep.png',dpi=400)
+fig.savefig('heatmap_dep.png',dpi=250)
 
 #%%
 print('- Age Groups:')
@@ -193,21 +193,21 @@ for aux in range(len(idade)):
     for j in icd9_chap([x[:3] for x in labels_cid[aux]]):
         if j < 19: age_groups[i][j-1] += 1
 
-fig, ax = plt.subplots(figsize=(15, 4))
+fig, ax = plt.subplots(figsize=(15, 5))
 
-im, cbar = heatmap(age_groups, ag, chap_set, ax=ax,
+im = heatmap(age_groups, ag, chap_set, ax=ax,
                    cmap="Reds", cbarlabel="Prevalence")
-texts = annotate_heatmap(im, valfmt="{x:.0f}")
+text = annotate_heatmap(im, valfmt="{x:.0f}")
 
 plt.ylabel('Age groups', fontsize='large')
 ax.set_xlabel('ICD-9 chapters', fontsize='large')    
 ax.xaxis.set_label_position('top') 
 
 fig.tight_layout()
-fig.savefig('heatmap_age.png',dpi=400)
+fig.savefig('heatmap_age.png',dpi=250)
 
 #%%
-print('\n- ICD-10 full-code statistics:')
+print('\n- ICD-9 full-code statistics:')
 
 labels_freq = Counter(labels_flatten)
 labels_freq = sorted(labels_freq.items(), key=operator.itemgetter(1))[::-1]
@@ -228,17 +228,89 @@ p1 = plt.bar(ind, cid, color='teal')
 p2 = plt.bar(ind, fst, color='firebrick', bottom=cid)
 
 plt.xticks(ind, keys, rotation = "vertical")
-plt.title('Number of occurences of the 50 more common ICD-9 codes in the dataset')
 plt.xlabel('ICD-9 codes', fontsize='large')
 plt.ylabel('Number of occurences in the dataset', fontsize='large')
 x1,x2,y1,y2 = plt.axis()
-plt.axis((-2,51,0,5000))
+plt.axis((-2,51,0,4500))
 
-plt.legend((p1[0],p2[0]), ('Not main code entries','Main code entries'), fontsize='xx-large')
+plt.legend((p1[0],p2[0]), ('Not main code entries','Main code entries'), fontsize='large')
+
+fig = plt.gcf()
+fig.set_size_inches(12.5, 6.5)
+fig.savefig('labels_freq_50.png',dpi=250)
+
+#%%
+print('\n- Age groups vs Top-10 Main codes:')
+top_10 = OrderedDict((k,0) for (k,v) in l_fst.items() if v > 1000)
+for code in top_10.keys(): top_10[code] = np.zeros((6,))
+
+by_age = [[line[2], line[3]] for line in texts]
+for i in range(len(by_age)): by_age[i][1] = labels_cid[i]
+by_age = [line for line in by_age if line[1] != [] and line[1] != ['']]
+for i in range(len(by_age)): by_age[i][1] = by_age[i][1][0]
+
+for i in range(len(by_age)):
+    if by_age[i][1] in top_10.keys():
+        if int(by_age[i][0]) < 5: top_10[by_age[i][1]][0] += 1
+        elif int(by_age[i][0]) < 15: top_10[by_age[i][1]][1] += 1
+        elif int(by_age[i][0]) < 25: top_10[by_age[i][1]][2] += 1
+        elif int(by_age[i][0]) < 45: top_10[by_age[i][1]][3] += 1
+        elif int(by_age[i][0]) < 65: top_10[by_age[i][1]][4] += 1
+        else: top_10[by_age[i][1]][5] += 1
+
+ag0 = [line[0] for line in list(top_10.values())]
+ag1 = [line[1] for line in list(top_10.values())]
+ag2 = [line[2] for line in list(top_10.values())]
+ag3 = [line[3] for line in list(top_10.values())]
+ag4 = [line[4] for line in list(top_10.values())]
+ag5 = [line[5] for line in list(top_10.values())]
+
+ag0 = [(elem/sum(ag0))*100 for elem in ag0]
+ag1 = [(elem/sum(ag1))*100 for elem in ag1]
+ag2 = [(elem/sum(ag2))*100 for elem in ag2]
+ag3 = [(elem/sum(ag3))*100 for elem in ag3]
+ag4 = [(elem/sum(ag4))*100 for elem in ag4]
+ag5 = [(elem/sum(ag5))*100 for elem in ag5]
+
+width = 1
+top_codes = list(top_10.keys())
+top_codes_desc = ['Congestive heart failure, unspecified','Acute bronchitis','Bacterial pneumonia unspecified','Other bacterial pneumonia','Senile cataract, unspecified','Diabetic macular edema','Sebaceous cyst','Cerebral thrombosis','Calculus of gallbladder w/o cholecystitis','Inguinal hernia w/o obstruction/gangrene']
+ind = range(len(keys))
+keys = ['0 - 4', '5 - 14', '15 - 24', '25 - 44', '45 - 64', '> 65']
+c0 = [ag0[0], ag1[0], ag2[0], ag3[0], ag4[0], ag5[0]]
+c1 = np.add([ag0[1], ag1[1], ag2[1], ag3[1], ag4[1], ag5[1]], c0)
+c2 = np.add([ag0[2], ag1[2], ag2[2], ag3[2], ag4[2], ag5[2]], c1)
+c3 = np.add([ag0[3], ag1[3], ag2[3], ag3[3], ag4[3], ag5[3]], c2)
+c4 = np.add([ag0[4], ag1[4], ag2[4], ag3[4], ag4[4], ag5[4]], c3)
+c5 = np.add([ag0[5], ag1[5], ag2[5], ag3[5], ag4[5], ag5[5]], c4)
+c6 = np.add([ag0[6], ag1[6], ag2[6], ag3[6], ag4[6], ag5[6]], c5)
+c7 = np.add([ag0[7], ag1[7], ag2[7], ag3[7], ag4[7], ag5[7]], c6)
+c8 = np.add([ag0[8], ag1[8], ag2[8], ag3[8], ag4[8], ag5[8]], c7)
+c9 = np.add([ag0[9], ag1[9], ag2[9], ag3[9], ag4[9], ag5[9]], c8)
+
+p0 = plt.bar(ind, c9, width)
+p1 = plt.bar(ind, c8, width)
+p2 = plt.bar(ind, c7, width)
+p3 = plt.bar(ind, c6, width)
+p4 = plt.bar(ind, c5, width)
+p5 = plt.bar(ind, c4, width)
+p6 = plt.bar(ind, c3, width)
+p7 = plt.bar(ind, c2, width)
+p8 = plt.bar(ind, c1, width)
+p9 = plt.bar(ind, c0, width)
+
+plt.xticks(ind, keys)
+plt.title('Percentage of discharge summaries associated to the 10 most common main ICD-9 full-codes')
+plt.xlabel('Age Group', fontsize='large')
+plt.ylabel('Percentage of hospital discharges', fontsize='large')
+x1,x2,y1,y2 = plt.axis()
+plt.axis((-0.5,5.5,0,100))
+
+plt.legend((p0[0],p1[0],p2[0],p3[0],p4[0],p5[0],p6[0],p7[0],p8[0],p9[0]), (top_codes_desc), fontsize='x-large', loc = 'lower left')
 
 fig = plt.gcf()
 fig.set_size_inches(20.0, 10.5)
-fig.savefig('labels_freq_50.png',dpi=400)
+fig.savefig('ag_codes.png',dpi=400)
 
 #%%
 per_note = [len(lst) for lst in labels_cid if lst != [] and lst != ['']]
@@ -252,12 +324,19 @@ print('\n  - Number of instances: %s' % len([x for x in labels_cid if x != [] an
 print('  - Number of instances with multiple ICD-9 codes: %s' % len([l for l in per_note if l > 1]))
 
 per_note = OrderedDict(sorted(Counter(per_note).items()))
+per_note[6] = sum([v for (k,v) in per_note.items() if k > 5])
 pnblk = dict((k,0) for (k,v) in per_note.items())
 for l in per_note_blk: pnblk[l] += 1
+pnblk[6] = sum([v for (k,v) in pnblk.items() if k > 5])
 pnchap = dict((k,0) for (k,v) in per_note.items())
 for l in per_note_chap: pnchap[l] += 1
+pnchap[6] = sum([v for (k,v) in pnchap.items() if k > 5])
 
-fig = plt.figure()
+per_note = dict((k,v) for (k,v) in per_note.items() if k < 7)
+pnblk = dict((k,v) for (k,v) in pnblk.items() if k < 7)
+pnchap = dict((k,v) for (k,v) in pnchap.items() if k < 7)
+
+fig = plt.figure(figsize=(4,7))
 
 x = list(per_note.keys())
 
@@ -272,16 +351,15 @@ ax = plt.subplot(111)
 p1 = ax.bar(x1, y, width=0.2, color='maroon', align='center')
 p2 = ax.bar(x, z, width=0.2, color='firebrick', align='center')
 p3 = ax.bar(x3, k, width=0.2, color='salmon', align='center')
-ax.set_ylabel('Number of instances', fontsize='x-large')
-ax.set_xlabel('Number of occurences', fontsize='x-large')
-ax.set_title('Number of ICD-9 full-codes, blocks and chapters per note in the dataset')
+ax.set_ylabel('Number of instances', fontsize='medium')
+ax.set_xlabel('Number of occurences', fontsize='medium')
 ax.set_xticks(list(range(1,max(per_note.keys())+1,1)))
 x1,x2,y1,y2 = ax.axis()
-ax.axis((-0.5,28.5,0,100000))
-ax.legend((p1[0], p2[0], p3[0]), ('ICD-9 Codes','ICD-9 Blocks','ICD-9 Chapters'), fontsize='xx-large')
+ax.axis((0.5,6.5,0,90000))
+ax.legend((p1[0], p2[0], p3[0]), ('ICD-9 Codes','ICD-9 Blocks','ICD-9 Chapters'), fontsize='medium')
 
-fig.set_size_inches(20.0, 10.5)
-fig.savefig('code_per_note.png',dpi=400)
+fig.tight_layout()
+fig.savefig('code_per_note.png',dpi=250)
 
 #%%
 print('\n- ICD-9 chapter statistics:')
