@@ -76,8 +76,9 @@ print('Loading data...')
 
 texts = [line.split('\t') for line in [line for line in codecs.open('dataset_hba.txt', encoding="iso-8859-1")]]
 fields = texts.pop(0)
-texts = [line for line in texts if len(line) == 121 and not (line[15] == '' or line[15] == ' ')][:3000]
 
+texts = [line for line in texts if len(line) == 121 and not (line[15] == '' or line[15] == ' ')]
+#%%
 print('Mapping ICD-9 codes...')
 labels_cid_pre = [codes(line[14]) for line in texts]
 labels_cid = clean(labels_cid_pre)
@@ -88,7 +89,6 @@ print('Preparing fields...')
 idade = [line[2] for line in texts]
 mot_int = [line[4].replace('<>','') for line in texts]
 res_clinic = [sent_tokenize(clean_num((line[8] + ' ' + line[9]).replace('%%%%%',' ').replace('<>',''))) for line in texts]
-#proc_diag = [sent_tokenize(line[13]) for line in texts]
 diag_alta = [[clean_num(re.sub(r'[^\w\s]','',diag)) for diag in line if diag != ''] for line in [field[15].replace('%%%%%','\n').replace('<>','').split('\n') for field in texts]]
 dep = [line[71] for line in texts]
 
@@ -126,8 +126,6 @@ texts_aux = list(res_clinic)
 for i in range(len(res_clinic)):
     if labels_cid[i] != [''] and len(labels_cid[i]) != 0:
         texts_aux[i] = labels_cid[i][0] + ' <> ' + diag_alta[i][0] + ' <> ' + diag_alta[i][1] + ' <> ' + diag_alta[i][2] + ' <> ' + diag_alta[i][3] + ' <> ' + diag_alta[i][4] + ' <> ' + diag_alta[i][5] + ' <> ' + diag_alta[i][6] + ' <> ' + diag_alta[i][7] + ' <> ' + diag_alta[i][8] + ' <> ' + mot_int[i] + ' <> ' + res_clinic[i][0] + ' <> ' + res_clinic[i][1] + ' <> ' + res_clinic[i][2] + ' <> ' + res_clinic[i][3] + ' <> ' + res_clinic[i][4] + ' <> ' + res_clinic[i][5] + ' <> ' + res_clinic[i][6] + ' <> ' + res_clinic[i][7] + ' <> ' + res_clinic[i][8] + ' <> ' + res_clinic[i][9] + ' <> ' + res_clinic[i][10] + ' <> ' + res_clinic[i][11] + ' <> ' + res_clinic[i][12] + ' <> ' + res_clinic[i][13] + ' <> ' + res_clinic[i][14] + ' <> ' +  res_clinic[i][15] + ' <> ' +  res_clinic[i][16] + ' <> ' + res_clinic[i][17] + ' <> ' + res_clinic[i][18] + ' <> ' + res_clinic[i][19] + ' <> ' + res_clinic[i][20] + ' <> ' + res_clinic[i][21] + ' <> ' + res_clinic[i][22] + ' <> ' + res_clinic[i][23] + ' <> ' + res_clinic[i][24] + ' <> ' + idade[i] + ' <> ' + dep[i] + ' <> ' + str(labels_cid[i])
-        #texts_aux[i] = labels_cid[i][0] + ' <> ' + diag_alta[i][0] + ' <> ' + diag_alta[i][1] + ' <> ' + diag_alta[i][2] + ' <> ' + diag_alta[i][3] + ' <> ' + diag_alta[i][4] + ' <> ' + diag_alta[i][5] + ' <> ' + diag_alta[i][6] + ' <> ' + diag_alta[i][7] + ' <> ' + diag_alta[i][8] + ' <> ' + mot_int[i] + ' <> ' + res_clinic[i][0] + ' <> ' + res_clinic[i][1] + ' <> ' + res_clinic[i][2] + ' <> ' + res_clinic[i][3] + ' <> ' + res_clinic[i][4] + ' <> ' + res_clinic[i][5] + ' <> ' + res_clinic[i][6] + ' <> ' + res_clinic[i][7] + ' <> ' + res_clinic[i][8] + ' <> ' + res_clinic[i][9] + ' <> ' + res_clinic[i][10] + ' <> ' + res_clinic[i][11] + ' <> ' + res_clinic[i][12] + ' <> ' + res_clinic[i][13] + ' <> ' + res_clinic[i][14] + ' <> ' +  res_clinic[i][15] + ' <> ' +  res_clinic[i][16] + ' <> ' + res_clinic[i][17] + ' <> ' + res_clinic[i][18] + ' <> ' + res_clinic[i][19] + ' <> ' + res_clinic[i][20] + ' <> ' + res_clinic[i][21] + ' <> ' + res_clinic[i][22] + ' <> ' + res_clinic[i][23] + ' <> ' + res_clinic[i][24] + ' <> ' + str(labels_cid[i])
-        #texts_aux[i] = labels_cid[i][0] + ' <> ' + res_clinic[i][0] + ' <> ' + res_clinic[i][1] + ' <> ' + res_clinic[i][2] + ' <> ' + res_clinic[i][3] + ' <> ' + res_clinic[i][4] + ' <> ' + res_clinic[i][5] + ' <> ' + res_clinic[i][6] + ' <> ' + res_clinic[i][7] + ' <> ' + res_clinic[i][8] + ' <> ' + dep[i] + ' <> ' + idade[i] + ' <> ' + str(labels_cid[i])
         texts_aux[i] = texts_aux[i] + '\r'
 
 #%%
@@ -145,15 +143,32 @@ f.close()
 print('Loading MIMIC-III data...')
 
 texts = [line.split(',',10) for line in codecs.open('dataset_mimic.txt', encoding="iso-8859-1")]
-texts = [[line[2],line[10]] for line in texts if ('History of Present Illness:'.lower() in line[10].lower() or 'History of the Present Illness:'.lower() in line[10].lower()) and 'Past Medical History:'.lower() in line[10].lower() and 'Allergies:'.lower() in line[10].lower() and 'Service:'.lower() in line[10].lower()]
-fields = ['Admission Date:','Discharge Date:','Date of Birth:','Sex:','Service:','Allergies:','Attending:','Chief Complaint:','Major Surgical or Invasive Procedure:','History of Present Illness:','History of the Present Illness:','Past Medical History:','Social History:','Family History:','Physical Exam:','Pertinent Results:','Brief Hospital Course:','Medications on Admission:','Discharge Medications:','Discharge Disposition:','Facility:','Discharge Diagnosis:','Discharge Condition:','Discharge Instructions:','Followup Instructions:']
-fields = ['Service:','Allergies:','History of Present Illness:','History of the Present Illness:','Past Medical History:']
+
+texts = [[line[2],line[10]] for line in texts if ('History of Present Illness:'.lower() in line[10].lower() or 'History of the Present Illness:'.lower() in line[10].lower()) and ('Final Diagnoses:'.lower() in line[10].lower() or 'Discharge Diagnosis:'.lower() in line[10].lower() or 'Discharge Diagnoses:'.lower() in line[10].lower())]
+
+fields = ['Admission Date:','Date:','Discharge Date:','Date of Birth:','Sex:','Service:','Allergies:','Attending:','Admitting Diagnosis:','Admission Diagnosis:','Admitting Diagnoses:','Admission Diagnoses:','Reason for Admission:','Chief Complaint:','Major Surgical or Invasive Procedure:','History of Present Illness:','History of the Present Illness:','Past Medical History:','Social History:','Family History:','Physical Exam:','Pertinent Results:','Pertinent Laboratory Data:','Laboratory studies on discharge:','Brief Hospital Course:','Concise Summary of Hospital Course:','Medications on Admission:','Discharge Medications:','Discharge Disposition:','Condition on Discharge:','Facility:','Discharge Diagnosis:','Final Diagnoses:','Discharge Diagnoses:','Discharge diagnoses:','Discharge Condition:','Discharge Instructions:','Discharge Status:','Patient instructions:','Followup Instructions:','Primary Care:','Completed by:']
 for i in range(len(texts)):
     for field in fields:
         texts[i][1] = texts[i][1].replace(field,'1y3g4jhk2g'+field).replace(field.upper(),'1y3g4jhk2g'+field)
     texts[i][1] = texts[i][1].split('1y3g4jhk2g')
-texts = [line for line in texts if len(line[1]) == 5 and 'Service:'.lower() in line[1][1].lower() and ('History of Present Illness:'.lower() in line[1][3].lower() or 'History of the Present Illness:'.lower() in line[1][3].lower())]
+    
+dep = [line[1][0] for line in texts] 
+res_clinic = [line[1][0] for line in texts] 
+mot_int = [line[1][0] for line in texts] 
+diag_alta = [line[1][0] for line in texts] 
 
+for i in range(len(texts)):
+    for j in range(len(texts[i][1])): 
+        if 'Service:' in texts[i][1][j]:
+            dep[i] = re.sub(r'[^\w\s]','',texts[i][1][j].replace('Service: ','').replace('<>','').upper()).replace(' ','')
+        if ('History of Present Illness:' in texts[i][1][j]) or ('History of the Present Illness:' in texts[i][1][j]):
+            res_clinic[i] = sent_tokenize(clean_num(texts[i][1][j].replace('History of Present Illness: ','').replace('History of the Present Illness: ','').replace('<>','')))
+        if 'Chief Complaint:' in texts[i][1][j]:
+            mot_int[i] = texts[i][1][j].replace('Chief Complaint: ','').replace('<>','')
+        if ('Discharge Diagnosis:' in texts[i][1][j]) or ('Final Diagnoses:' in texts[i][1][j]) or ('Discharge Diagnoses:' in texts[i][1][j]):
+            diag_alta[i] = re.sub('\d','\n',texts[i][1][j].replace('"','').replace('Discharge Diagnosis: ','').replace('Discharge Diagnoses: ','').replace('Discharge diagnoses: ','').replace('Final Diagnoses: ','').replace('<>','')).split('\n')
+
+#%%
 print('Mapping ICD-9 codes...')
 
 codes = [line.split(',') for line in codecs.open('dataset_mimic_codes.txt', encoding="utf-8")]
@@ -167,36 +182,49 @@ for i in range(len(texts)):
 
 labels_cid_no = [line[0] for line in texts]
 labels_cid = clean([line[0] for line in texts])
+#%%
+print('Preparing fields...')
 
-print('Preparing department provenance...')
+dep_options = ['MICU','ONCO','ACOVE','BLUE','BLUMGART','CARD','CCU','CME','CORONARY','CSU','GENERAL','MED','NEO','NEURO','OBST','ORTHO','OTOLA','ICU','PLASTIC','PSY','SURGERY','THORAC','TRASNPLANT','TRAUMA','VSU','CT']
 
-texts = [line[1] for line in texts]
-dep = ['873heGKe7I ' + line[1].replace('Service:  ','').replace('Service: ','').replace('Service:','').lower() + ' 873heGKe7I' for line in texts]
-
-print('Preparing clinic resume...')
-
-res_clinic = [phrases(line[3].replace('History of Present Illness:','').replace('History of the Present Illness:','')) for line in texts]
-
+for i in range(len(dep)):
+    dep[i].replace('DOCTOR','MEDDOC')
+    count = 0
+    for op in dep_options:
+        if op in dep[i]:
+            dep[i] = op
+            break
+        else: count += 1
+    if count == 24: dep[i] = 'NONE'
+    
+#%%
 for i in range(len(res_clinic)):
-    if len(res_clinic[i]) > 20: res_clinic[i] = res_clinic[i][:20]
+    if len(res_clinic[i]) > 25: res_clinic[i] = res_clinic[i][:25]
+    if isinstance(diag_alta[i],str): diag_alta[i] = [diag_alta[i]]
+    if len(diag_alta[i]) > 9: diag_alta[i] = diag_alta[i][:9]
+    mot_int[i] = '873heGKe7I ' + mot_int[i] + ' 873heGKe7I'
     for j in range(len(res_clinic[i])):
-        res_clinic[i][j] = '873heGKe7I ' + res_clinic[i][j].lower() + ' 873heGKe7I'
+        res_clinic[i][j] = '873heGKe7I ' + res_clinic[i][j] + ' 873heGKe7I'
         if res_clinic[i] == '873heGKe7I  873heGKe7I' or res_clinic[i] == '873heGKe7I   873heGKe7I': res_clinic[i] = ''
-    while len(res_clinic[i]) < 20:
+    for j in range(len(diag_alta[i])):
+        diag_alta[i][j] = '873heGKe7I ' + diag_alta[i][j] + ' 873heGKe7I'
+        if diag_alta[i] == '873heGKe7I  873heGKe7I' or diag_alta[i] == '873heGKe7I   873heGKe7I': diag_alta[i] = ''
+    while len(res_clinic[i]) < 25:
         res_clinic[i].append('')
-    #res_clinic[i].append(dep[i])
+    while len(diag_alta[i]) < 9:
+        diag_alta[i].append('')
 
 #%%
 print('Preparing discharge summaries file format...')
 
-texts_aux = res_clinic[:]
+texts_aux = list(res_clinic)
 for i in range(len(res_clinic)):
-    if len(labels_cid[i]) != 0 and labels_cid[i] != ['']:
-        texts_aux[i] = labels_cid[i][0] + ' <> ' + res_clinic[i][0] + ' <> ' + res_clinic[i][1] + ' <> ' + res_clinic[i][2] + ' <> ' + res_clinic[i][3] + ' <> ' + res_clinic[i][4] + ' <> ' + res_clinic[i][5] + ' <> ' + res_clinic[i][6] + ' <> ' + res_clinic[i][7] + ' <> ' + res_clinic[i][8] + ' <> ' + res_clinic[i][9] + ' <> ' + res_clinic[i][10] + ' <> ' + res_clinic[i][11] + ' <> ' + res_clinic[i][12] + ' <> ' + res_clinic[i][13] + ' <> ' + res_clinic[i][14] + ' <> ' +  res_clinic[i][15] + ' <> ' +  res_clinic[i][16] + ' <> ' + res_clinic[i][17] + ' <> ' + res_clinic[i][18] + ' <> ' + res_clinic[i][19] + ' <> ' + str(labels_cid[i])
-        texts_aux[i] = texts_aux[i].replace('.','')
+    if labels_cid[i] != [''] and len(labels_cid[i]) != 0:
+        texts_aux[i] = labels_cid[i][0] + ' <> ' + diag_alta[i][0] + ' <> ' + diag_alta[i][1] + ' <> ' + diag_alta[i][2] + ' <> ' + diag_alta[i][3] + ' <> ' + diag_alta[i][4] + ' <> ' + diag_alta[i][5] + ' <> ' + diag_alta[i][6] + ' <> ' + diag_alta[i][7] + ' <> ' + diag_alta[i][8] + ' <> ' + mot_int[i] + ' <> ' + res_clinic[i][0] + ' <> ' + res_clinic[i][1] + ' <> ' + res_clinic[i][2] + ' <> ' + res_clinic[i][3] + ' <> ' + res_clinic[i][4] + ' <> ' + res_clinic[i][5] + ' <> ' + res_clinic[i][6] + ' <> ' + res_clinic[i][7] + ' <> ' + res_clinic[i][8] + ' <> ' + res_clinic[i][9] + ' <> ' + res_clinic[i][10] + ' <> ' + res_clinic[i][11] + ' <> ' + res_clinic[i][12] + ' <> ' + res_clinic[i][13] + ' <> ' + res_clinic[i][14] + ' <> ' +  res_clinic[i][15] + ' <> ' +  res_clinic[i][16] + ' <> ' + res_clinic[i][17] + ' <> ' + res_clinic[i][18] + ' <> ' + res_clinic[i][19] + ' <> ' + res_clinic[i][20] + ' <> ' + res_clinic[i][21] + ' <> ' + res_clinic[i][22] + ' <> ' + res_clinic[i][23] + ' <> ' + res_clinic[i][24] + ' <> ' + dep[i] + ' <> ' + str(labels_cid[i])
         texts_aux[i] = texts_aux[i] + '\r'
 
 print('Writing output...')
+
 f = open('dataset_input_mimic.txt','w')
 
 for _list in texts_aux:
