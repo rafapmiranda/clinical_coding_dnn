@@ -20,7 +20,7 @@ The code was tested with Pyhton 3.6.0 and Keras 2.1.5
 
 ### Training a model
 
-1. Using a `.txt` file with your dataset (see `dataset_example_hba_full.txt`), execute the `clinical_coding_dnn.py` indicating the dataset file directory in `line 84` of the code.
+1. Using a `.txt` file with your dataset (see `dataset_example_hba_full.txt`), execute the `clinical_coding_dnn.py` indicating the dataset file directory in `line 60` of the code.
 
 2. After the training is complete, the model saves five `.txt` files with the outputs for each hierarchical level (e.g., `pred_full_nmf.txt`)
 
