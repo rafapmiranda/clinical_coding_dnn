@@ -576,7 +576,7 @@ for i in range(len(y_test)):
         cid_pred[i][j] = le4.inverse_transform(top3_4[-j])
         cid_pred[i][3+j] = le3_aux.inverse_transform(top3_3[-j])
 
-np.savetxt('pred_full_nmf.txt', cid_pred, delimiter=" ", fmt="%s")
+np.savetxt('pred_full.txt', cid_pred, delimiter=" ", fmt="%s")
 
 y_t = [np.where(x != 0)[0].astype(str) for x in y_test_aux]
 
@@ -585,7 +585,7 @@ for i in range(len(y_t)):
         y_t[i][j] = le4_aux.inverse_transform(int(y_t[i][j]))
     y_t[i] = y_t[i].tolist()
     
-np.savetxt('true_baseline.txt', y_t, delimiter=" ", fmt="%s")
+np.savetxt('true_labels.txt', y_t, delimiter=" ", fmt="%s")
 
 all_aux_bool = np.copy(all_aux)
     
@@ -607,7 +607,7 @@ aux = [line[1] for line in cid_pred]
 for i in range(len(all_aux_bool)):
     if all_aux_bool[i] == []: all_aux_bool[i].insert(0,aux[i])
 
-np.savetxt('pred_baseline.txt', all_aux_bool, delimiter=" ", fmt="%s")
+np.savetxt('pred_labels.txt', all_aux_bool, delimiter=" ", fmt="%s")
 
 all_3_bool = np.copy(all_3)
     
@@ -629,7 +629,7 @@ aux = [line[1][:3] for line in cid_pred]
 for i in range(len(all_3_bool)):
     if all_3_bool[i] == []: all_3_bool[i].insert(0,aux[i])
 
-np.savetxt('pred_baseline_block.txt', all_3_bool, delimiter=" ", fmt="%s")
+np.savetxt('pred_labels_block.txt', all_3_bool, delimiter=" ", fmt="%s")
 
 all_c_bool = np.copy(all_c)
     
@@ -642,7 +642,7 @@ all_c_bool = [[(k,v) for k,v in enumerate(line) if v != 0] for line in all_c_boo
 all_c_bool = [sorted(line, key=lambda x: x[1])[::-1] for line in all_c_bool]
 all_c_bool = [[k[0] for k in line] for line in all_c_bool]
 
-np.savetxt('pred_baseline_chap.txt', all_c_bool, delimiter=" ", fmt="%s")
+np.savetxt('pred_labels_chap.txt', all_c_bool, delimiter=" ", fmt="%s")
 
 print('Calculating MRR...')
 
