@@ -119,3 +119,15 @@ def one_error(y_true, y_pred):
             m_list.append(0)
     return np.mean(m_list)
 
+def top_labels(max_rank, y_true, y_pred):
+    '''
+    Compute the score associated to true labels being between the top-max_rank predicted labels
+    '''    
+    m_list = []
+    for i in range(y_true.shape[0]):
+        set_pred = y_pred[i]
+        if y_true[i] in set_pred:
+            m_list.append(1)
+        else:
+            m_list.append(0)
+    return np.mean(m_list)
